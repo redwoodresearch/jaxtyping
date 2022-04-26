@@ -59,7 +59,7 @@ class ShapeDetail(TensorDetail):
         super().__init__(**kwargs)
         self.dims = dims
         if check_names:
-            raise NotImplementedError("ndarrays have no names, so we cannot check them.")
+            raise TypeError("There are no named JaxArrays.")
         self.check_names = check_names
 
     def __repr__(self) -> str:
@@ -141,23 +141,6 @@ class DtypeDetail(TensorDetail):
     @classmethod
     def tensor_repr(cls, tensor: JaxArray) -> str:
         return repr(cls(dtype=tensor.dtype))
-
-
-class LayoutDetail(TensorDetail):
-    def __init__(self, *, layout, **kwargs) -> None:
-        raise NotImplementedError("Jax has no sparse arrays")
-        super().__init__(**kwargs)
-        self.layout = layout
-
-    def __repr__(self) -> str:
-        return repr(self.layout)
-
-    def check(self, tensor: JaxArray) -> bool:
-        return self.layout == tensor.layout
-
-    @classmethod
-    def tensor_repr(cls, tensor: JaxArray) -> str:
-        return repr(cls(layout=tensor.layout))
 
 
 class _FloatDetail(TensorDetail):

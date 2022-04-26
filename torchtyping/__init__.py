@@ -2,7 +2,6 @@ from .tensor_details import (
     DtypeDetail,
     is_float,
     is_named,
-    LayoutDetail,
     ShapeDetail,
     TensorDetail,
 )

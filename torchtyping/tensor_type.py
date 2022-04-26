@@ -8,7 +8,6 @@ from .tensor_details import (
     _no_name,
     is_named,
     DtypeDetail,
-    LayoutDetail,
     ShapeDetail,
     TensorDetail,
 )
@@ -126,7 +125,7 @@ class JaxArrayMixin(metaclass=_JaxArrayMeta):
             # elif isinstance(item_i, torch.layout):
             #     layouts.append(item_i)
             elif item_i is is_named:
-                raise TypeError("There are no named JaxArrays")
+                raise TypeError("There are no named JaxArrays.")
                 check_names = True
             elif isinstance(item_i, TensorDetail):
                 details.append(item_i)
@@ -153,10 +152,8 @@ class JaxArrayMixin(metaclass=_JaxArrayMeta):
 
         if len(layouts) == 0:
             pass
-        elif len(layouts) == 1:
-            pre_details.append(LayoutDetail(layout=layouts[0]))
         else:
-            raise TypeError("Cannot have multiple layouts.")
+            raise TypeError("Cannot specify JaxArray layout.")
 
         details = tuple(pre_details + details)
 

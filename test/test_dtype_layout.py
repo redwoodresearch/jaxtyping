@@ -51,19 +51,3 @@ with pytest.raises(TypeError):
     @typeguard.typechecked
     def _sparse_coo_checker(x: TensorType[torch.sparse_coo]):
         pass
-
-
-@skip_layout_test
-def test_strided_layout():
-    x = torch.rand(2)
-    _strided_checker(x)
-    with pytest.raises(TypeError):
-        _sparse_coo_checker(x)
-
-
-@skip_layout_test
-def test_sparse_coo_layout():
-    x = torch.rand(2).to_sparse()
-    _sparse_coo_checker(x)
-    with pytest.raises(TypeError):
-        _strided_checker(x)

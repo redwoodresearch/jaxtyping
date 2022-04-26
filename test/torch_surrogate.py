@@ -31,7 +31,7 @@ def skip_named_test(test):
     def new_test(*args, **kwargs):
         with pytest.raises(TypeError) as err:
             out = test(*args, **kwargs)
-            assert str(err) == "There are no named JaxArrays"
+            assert str(err) == "There are no named JaxArrays."
             return out
     return new_test
 
