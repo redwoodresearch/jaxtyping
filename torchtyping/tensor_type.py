@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import sys
-import torch
+import jax.numpy as jnp
 
 from .tensor_details import (
     _Dim,
     _no_name,
-    is_named,
     DtypeDetail,
     LayoutDetail,
     ShapeDetail,
@@ -25,11 +24,11 @@ else:
     from typing_extensions import Annotated
 
 # Not Type[Annotated...] as we want to use this in instance checks.
-_AnnotatedType = type(Annotated[torch.Tensor, ...])
+_AnnotatedType = type(Annotated[jnp.ndarray, ...])
 
 
 # For use when we have a plain TensorType, without any [].
-class _TensorTypeMeta(type(torch.Tensor)):
+class _TensorTypeMeta(type(jnp.ndarray)):
     def __instancecheck__(cls, obj: Any) -> bool:
         return isinstance(obj, cls.base_cls)
 
@@ -70,11 +69,11 @@ class TensorTypeMixin(metaclass=_TensorTypeMeta):
     @staticmethod
     def _convert_dtype_element(item_i: Any) -> torch.dtype:
         if item_i is int:
-            return torch.long
+            return jnp.dtype("int64")
         elif item_i is float:
-            return torch.get_default_dtype()
+            return jnp.ones(()).dtype
         elif item_i is bool:
-            return torch.bool
+            return jnp.dtype("bool")
         else:
             return item_i
 
@@ -125,8 +124,8 @@ class TensorTypeMixin(metaclass=_TensorTypeMeta):
                 dtypes.append(cls._convert_dtype_element(item_i))
             elif isinstance(item_i, torch.layout):
                 layouts.append(item_i)
-            elif item_i is is_named:
-                check_names = True
+            # elif item_i is is_named:   # there are no named Jax arrays
+            #     check_names = True
             elif isinstance(item_i, TensorDetail):
                 details.append(item_i)
             else:
@@ -171,7 +170,7 @@ class TensorTypeMixin(metaclass=_TensorTypeMeta):
         ]
 
 
-# Inherit from torch.Tensor so that IDEs are happy to find methods on functions
+# Inherit from jnp.ndarray so that IDEs are happy to find methods on functions
 # annotated as TensorTypes.
-class TensorType(torch.Tensor, TensorTypeMixin):
-    base_cls = torch.Tensor
+class JaxArray(jnp.ndarray, TensorTypeMixin):
+    base_cls = jnp.ndarray

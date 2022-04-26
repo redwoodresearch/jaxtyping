@@ -1,5 +1,7 @@
-<h1 align='center'>torchtyping</h1>
+<h1 align='center'>jaxtyping</h1>
 <h2 align='center'>Type annotations for a tensor's shape, dtype, names, ...</h2>
+
+Like Torchtyping, but for Jax.
 
 Turn this:
 ```python
