@@ -3,10 +3,11 @@ from __future__ import annotations
 import abc
 import collections
 import jax.numpy
-from jax.numpy import ndarray
+import jax.core
 
 from typing import Optional, Union
 
+JaxArray = Union[jax.numpy.ndarray, jax.core.UnshapedArray]
 
 ellipsis = type(...)
 
@@ -17,12 +18,12 @@ class TensorDetail(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def check(self, tensor: ndarray) -> bool:
+    def check(self, tensor: JaxArray) -> bool:
         raise NotImplementedError
 
     @classmethod
     @abc.abstractmethod
-    def tensor_repr(cls, tensor: ndarray) -> str:
+    def tensor_repr(cls, tensor: JaxArray) -> str:
         raise NotImplementedError
 
 
@@ -72,7 +73,7 @@ class ShapeDetail(TensorDetail):
             out += ", is_named"
         return out
 
-    def check(self, tensor: ndarray) -> bool:
+    def check(self, tensor: JaxArray) -> bool:
         self_names = [self_dim.name for self_dim in self.dims]
         self_shape = [self_dim.size for self_dim in self.dims]
 
@@ -83,19 +84,13 @@ class ShapeDetail(TensorDetail):
             if len(self_shape) != len(tensor.shape):
                 return False
 
-        saw_ellipsis = False
         for self_name, self_size, tensor_size in zip(
             reversed(self_names),
             reversed(self_shape),
             reversed(tensor.shape),
         ):
-            if saw_ellipsis:
-                # This assumes that Ellipses only occur on the left hand edge.
-                # So once we hit one we should be done.
-                # If we iterate again after hitting one, we're in trouble
-                raise ValueError(f"{self} is not a valid shape, the ellipsis (...) can only occur once")
             if self_size is ...:
-                saw_ellipsis = True
+                break
 
             if (
                 self.check_names
@@ -109,7 +104,7 @@ class ShapeDetail(TensorDetail):
         return True
 
     @classmethod
-    def tensor_repr(cls, tensor: ndarray) -> str:
+    def tensor_repr(cls, tensor: JaxArray) -> str:
         dims = []
         # check_names = any(name is not None for name in tensor.names)
         check_names = False
@@ -140,11 +135,11 @@ class DtypeDetail(TensorDetail):
     def __repr__(self) -> str:
         return repr(self.dtype)
 
-    def check(self, tensor: ndarray) -> bool:
+    def check(self, tensor: JaxArray) -> bool:
         return self.dtype == tensor.dtype
 
     @classmethod
-    def tensor_repr(cls, tensor: ndarray) -> str:
+    def tensor_repr(cls, tensor: JaxArray) -> str:
         return repr(cls(dtype=tensor.dtype))
 
 
@@ -157,11 +152,11 @@ class LayoutDetail(TensorDetail):
     def __repr__(self) -> str:
         return repr(self.layout)
 
-    def check(self, tensor: ndarray) -> bool:
+    def check(self, tensor: JaxArray) -> bool:
         return self.layout == tensor.layout
 
     @classmethod
-    def tensor_repr(cls, tensor: ndarray) -> str:
+    def tensor_repr(cls, tensor: JaxArray) -> str:
         return repr(cls(layout=tensor.layout))
 
 
@@ -169,11 +164,11 @@ class _FloatDetail(TensorDetail):
     def __repr__(self) -> str:
         return "is_float"
 
-    def check(self, tensor: ndarray) -> bool:
+    def check(self, tensor: JaxArray) -> bool:
         return tensor.dtype.kind == "f"
 
     @classmethod
-    def tensor_repr(cls, tensor: ndarray) -> str:
+    def tensor_repr(cls, tensor: JaxArray) -> str:
         return "is_float" if (tensor.dtype.kind == "f") else ""
 
 
@@ -185,13 +180,13 @@ class _NamedTensorDetail(TensorDetail):
     def __repr__(self) -> str:
         raise RuntimeError
 
-    def check(self, tensor: ndarray) -> bool:
+    def check(self, tensor: JaxArray) -> bool:
         raise RuntimeError
 
     @classmethod
-    def tensor_repr(cls, tensor: ndarray) -> str:
+    def tensor_repr(cls, tensor: JaxArray) -> str:
         raise RuntimeError
 
 
 is_float = _FloatDetail()  # singleton flag
-# is_named = _NamedTensorDetail()  # singleton flag
+is_named = _NamedTensorDetail()  # singleton flag

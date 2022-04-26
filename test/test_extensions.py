@@ -1,32 +1,37 @@
 import pytest
-from torch import rand, Tensor
-from torchtyping import TensorDetail, TensorType
+import jax.numpy as jnp
+from jaxtyping import TensorDetail, JaxArray
 from typeguard import typechecked
+
+from pathlib import Path
+import sys
+sys.path.append(Path(__file__).parent.resolve())
+from torch_surrogate import rand, Tensor, TensorType
 
 good = foo = None
 
 # Write the extension
 
 
-class FooDetail(TensorDetail):
-    def __init__(self, foo):
+class KindDetail(TensorDetail):
+    def __init__(self, kind):
         super().__init__()
-        self.foo = foo
+        self.kind = kind
 
-    def check(self, tensor: Tensor) -> bool:
-        return hasattr(tensor, "foo") and tensor.foo == self.foo
+    def check(self, array: JaxArray) -> bool:
+        return array.dtype.kind == self.kind
 
     # reprs used in error messages when the check is failed
 
     def __repr__(self) -> str:
-        return f"FooDetail({self.foo})"
+        return f"KindDetail({self.kind})"
 
     @classmethod
-    def tensor_repr(cls, tensor: Tensor) -> str:
-        # Should return a representation of the tensor with respect
+    def tensor_repr(cls, array: JaxArray) -> str:
+        # Should return a representation of the array with respect
         # to what this detail is checking
-        if hasattr(tensor, "foo"):
-            return f"FooDetail({tensor.foo})"
+        if array.dtype.kind == "u":
+            return f"KindDetail({array.dtype.kind})"
         else:
             return ""
 
@@ -35,25 +40,22 @@ class FooDetail(TensorDetail):
 
 
 @typechecked
-def foo_checker(tensor: TensorType[float, FooDetail("good-foo")]):
+def foo_checker(tensor: TensorType[3, KindDetail("u")]):
     pass
 
 
 def valid_foo():
-    x = rand(3)
-    x.foo = "good-foo"
+    x = rand(3).astype(jnp.uint32)
     foo_checker(x)
 
 
 def invalid_foo_one():
-    x = rand(3)
-    x.foo = "bad-foo"
+    x = rand(3).astype(jnp.float16)
     foo_checker(x)
 
 
 def invalid_foo_two():
-    x = rand(2).int()
-    x.foo = "good-foo"
+    x = rand(2).astype(jnp.uint8)
     foo_checker(x)
 
 

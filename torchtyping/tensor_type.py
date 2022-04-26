@@ -6,6 +6,7 @@ import jax.numpy as jnp
 from .tensor_details import (
     _Dim,
     _no_name,
+    is_named,
     DtypeDetail,
     LayoutDetail,
     ShapeDetail,
@@ -124,8 +125,9 @@ class JaxArrayMixin(metaclass=_JaxArrayMeta):
                 dtypes.append(cls._convert_dtype_element(item_i))
             # elif isinstance(item_i, torch.layout):
             #     layouts.append(item_i)
-            # elif item_i is is_named:   # there are no named Jax arrays
-            #     check_names = True
+            elif item_i is is_named:
+                raise TypeError("There are no named JaxArrays")
+                check_names = True
             elif isinstance(item_i, TensorDetail):
                 details.append(item_i)
             else:

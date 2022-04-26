@@ -8,7 +8,7 @@ import typeguard
 from .tensor_details import _Dim, _no_name, ShapeDetail
 from .tensor_type import _AnnotatedType
 
-from typing import Any, Dict, List, Tuple, Callable
+from typing import Any, Dict, List, Tuple, Callable, Union, Iterable
 
 # get_args is available in python version 3.8
 # get_type_hints with include_extras parameter is available in 3.9 PEP 593.
@@ -27,9 +27,16 @@ def jit(fun: Callable, **kwargs):
 
 @functools.wraps(jax.jit)
 def typed_jit(fun: Callable, **kwargs):
-    """Type-check first and then JIT the resulting function.
+    """Type-check first and then JIT the resulting function. Has no overhead
+    after compilation.
 
-    No overhead after compilation.
+    Equivalent to:
+    ```
+    @jax.jit
+    @typeguard.typechecked
+    def fun(...):
+        ...
+    ```
     """
     _jitted_fun = jax.jit(typeguard.typechecked(fun), **kwargs)
     return functools.wraps(fun)(_jitted_fun)
@@ -79,7 +86,7 @@ def _to_string(name, detail_reprs: List[str]) -> str:
 
 
 def _check_tensor(
-    argname: str, value: Any, origin: Type[jnp.ndarray], metadata: Dict[str, Any],
+    argname: str, value: Any, origin: Union[Type[jnp.ndarray], Tuple[Type[jnp.ndarray]]], metadata: Dict[str, Any],
 ):
     details = metadata["details"]
     if not isinstance(value, origin) or any(
@@ -272,7 +279,7 @@ def _check_memo(memo):
             dims.append(_Dim(name=dim.name, size=size))
         detail = detail.update(dims=tuple(dims))
         _check_tensor(
-            argname, value, jnp.ndarray, {"cls_name": cls_name, "details": [detail]}
+            argname, value, (jnp.ndarray, jax.core.UnshapedArray), {"cls_name": cls_name, "details": [detail]}
         )
 
 

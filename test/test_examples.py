@@ -1,13 +1,14 @@
 import pytest
 
 import jaxtyping
+from jaxtyping import is_named
 import jax.numpy
 from typeguard import typechecked
 
 from pathlib import Path
 import sys
 sys.path.append(Path(__file__).parent.resolve())
-from torch_surrogate import TensorType, rand
+from torch_surrogate import TensorType, rand, tensor, skip_named_test, ones, sparse_coo, skip_layout_test
 
 # make flake8 happy
 batch = x_channels = y_channels = a = b = channels = channels_x = channels_y = None
@@ -187,11 +188,12 @@ def test_example9():
 
     func(rand(3, 4))
     with pytest.raises(TypeError):
-        func(rand(3, 4).long())
+        func(rand(3, 4).astype(jax.numpy.int64))
     with pytest.raises(TypeError):
         func(rand(2, 3))
 
 
+@skip_named_test
 def test_example10():
     @typechecked
     def func(x: TensorType["a":3, "b", is_named]):
@@ -218,6 +220,7 @@ def test_example10():
         func(rand(3))
 
 
+@skip_layout_test
 def test_example11():
     @typechecked
     def func(x: TensorType[sparse_coo]):

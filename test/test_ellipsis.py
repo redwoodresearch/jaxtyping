@@ -66,8 +66,8 @@ def test_multiple_ellipsis1():
     def func(
         x: TensorType["dim1":..., "dim2":...], y: TensorType["dim2":...]
     ) -> TensorType["dim1":...]:
-        sum_dims = [-i - 1 for i in range(y.dim())]
-        return (x * y).sum(dim=sum_dims)
+        sum_dims = [-i - 1 for i in range(len(y.shape))]
+        return (x * y).sum(axis=sum_dims)
 
     func(torch.rand(1, 2), torch.rand(2))
     func(torch.rand(3, 4, 5, 9), torch.rand(5, 9))
@@ -86,8 +86,8 @@ def test_multiple_ellipsis2():
     def func(
         x: TensorType["dim2":...], y: TensorType["dim1":..., "dim2":...]
     ) -> TensorType["dim1":...]:
-        sum_dims = [-i - 1 for i in range(x.dim())]
-        return (x * y).sum(dim=sum_dims)
+        sum_dims = [-i - 1 for i in range(len(x.shape))]
+        return (x * y).sum(axis=sum_dims)
 
     with pytest.raises(TypeError):
         func(torch.rand(1, 1, 4), torch.rand(1, 4))
@@ -100,14 +100,14 @@ def test_multiple_ellipsis3():
         y: TensorType["dim2":..., "dim3":...],
         z: TensorType["dim2":...],
     ) -> TensorType["dim1":...]:
-        num2 = y.dim() - z.dim()
-        num3 = z.dim()
+        num2 = len(y.shape) - len(z.shape)
+        num3 = len(z.shape)
         for _ in range(num2):
-            z = z.unsqueeze(-1)
+            z = z[..., None]
         y = y * z
         x = x + y
         for _ in range(num2 + num3):
-            x = x.sum(dim=-1)
+            x = x.sum(axis=-1)
         return x
 
     func(torch.rand(1, 2, 3), torch.rand(2, 3), torch.rand(2))

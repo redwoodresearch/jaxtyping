@@ -1,8 +1,13 @@
 import pytest
 from typing import Any
-import torch
-from torchtyping import TensorType, is_named
+from jaxtyping import is_named
 import typeguard
+
+from pathlib import Path
+import sys
+sys.path.append(Path(__file__).parent.resolve())
+from torch_surrogate import TensorType, skip_named_test
+import torch_surrogate as torch
 
 
 # make flake8 happy
@@ -221,6 +226,7 @@ def test_str_str_dim_fixed_num():
         func(torch.ones(2))
 
 
+@skip_named_test
 def test_str_str_dim_fixed_names():
     @typeguard.typechecked
     def func(x: TensorType["a":"x", is_named]) -> TensorType["x":3]:
@@ -237,6 +243,7 @@ def test_str_str_dim_fixed_names():
         func(torch.ones(3, names=["x"]))
 
 
+@skip_named_test
 def test_str_str_dim_no_early_return():
     @typeguard.typechecked
     def func(x: TensorType["a":"x", "b":"y", "c":"z", is_named]):
@@ -249,6 +256,7 @@ def test_str_str_dim_no_early_return():
         func(torch.ones(2, 2, 2, names=["a", "b", "d"]))
 
 
+@skip_named_test
 def test_none_str():
     @typeguard.typechecked
     def func(x: TensorType[None:"x", "b":"x", is_named]):
