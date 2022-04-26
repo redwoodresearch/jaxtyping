@@ -6,7 +6,7 @@ from .tensor_details import (
     TensorDetail,
 )
 
-from .tensor_type import JaxArray, jit
-from .typechecker import patch_typeguard
+from .tensor_type import JaxArray
+from .typechecker import patch_typeguard, jit, typed_jit
 
 __version__ = "0.1.4"

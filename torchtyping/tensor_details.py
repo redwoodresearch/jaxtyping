@@ -177,7 +177,7 @@ class _FloatDetail(TensorDetail):
         return "is_float" if self.check(tensor) else ""
 
 
-# is_named is special-cased and consumed by TensorType.
+# is_named is special-cased and consumed by JaxArray.
 # It's a bit of an odd exception.
 # It's only a TensorDetail for consistency, as the other
 # extra flags that get passed are TensorDetails.

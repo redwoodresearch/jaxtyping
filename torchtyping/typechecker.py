@@ -1,12 +1,14 @@
+import functools
 import inspect
+import jax
+import jax.numpy as jnp
 import sys
-import torch
 import typeguard
 
 from .tensor_details import _Dim, _no_name, ShapeDetail
 from .tensor_type import _AnnotatedType
 
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Callable
 
 # get_args is available in python version 3.8
 # get_type_hints with include_extras parameter is available in 3.9 PEP 593.
@@ -14,6 +16,23 @@ if sys.version_info >= (3, 9):
     from typing import get_type_hints, get_args, Type
 else:
     from typing_extensions import get_type_hints, get_args, Type
+
+
+# IDE-friendly version of the Jax @jit decorator
+@functools.wraps(jax.jit)
+def jit(fun: Callable, **kwargs):
+    _jitted_fun = jax.jit(fun, **kwargs)
+    return functools.wraps(fun)(_jitted_fun)
+
+
+@functools.wraps(jax.jit)
+def typed_jit(fun: Callable, **kwargs):
+    """Type-check first and then JIT the resulting function.
+
+    No overhead after compilation.
+    """
+    _jitted_fun = jax.jit(typeguard.typechecked(fun), **kwargs)
+    return functools.wraps(fun)(_jitted_fun)
 
 
 # TYPEGUARD PATCHER
@@ -32,7 +51,7 @@ else:
 #
 # Second, we patch `check_type`. typeguard traverses the [] hierarchy, e.g. from
 # Tuple[List[int]] to List[int] to int, recursively calling `check_type`. By patching
-# `check_type` we can check for our `TensorType`s and record every value-type pair.
+# `check_type` we can check for our `JaxArray`s and record every value-type pair.
 # (Actually it's a bit more than that: we record some names for use in the error
 # messages.) These are recorded in our enhanced `_CallMemo` object.
 #
@@ -40,7 +59,7 @@ else:
 # our annotations aren't stripped.)
 #
 # Then we patch `check_argument_types` and `check_return_type`, to perform our extra
-# TensorType checking. This is the same checking in both cases so we factor that out
+# JaxArray checking. This is the same checking in both cases so we factor that out
 # into _check_memo.
 #
 # _check_memo performs the real logic of the checking here. This looks at all the
@@ -60,7 +79,7 @@ def _to_string(name, detail_reprs: List[str]) -> str:
 
 
 def _check_tensor(
-    argname: str, value: Any, origin: Type[torch.Tensor], metadata: Dict[str, Any]
+    argname: str, value: Any, origin: Type[jnp.ndarray], metadata: Dict[str, Any],
 ):
     details = metadata["details"]
     if not isinstance(value, origin) or any(
@@ -69,7 +88,7 @@ def _check_tensor(
         expected_string = _to_string(
             metadata["cls_name"], [repr(detail) for detail in details]
         )
-        if isinstance(value, torch.Tensor):
+        if isinstance(value, (jnp.ndarray, jax.core.UnshapedArray)):
             given_string = _to_string(
                 metadata["cls_name"], [detail.tensor_repr(value) for detail in details]
             )
@@ -214,12 +233,12 @@ def _check_memo(memo):
                 raise TypeError(
                     f"Could not resolve the size of all `...` in {names}. Either:\n"
                     "(1) the specification is ambiguous. For example "
-                    "`func(tensor: TensorType['x': ..., 'y': ...])`.\n"
+                    "`func(arr: JaxArray['x': ..., 'y': ...])`.\n"
                     "(2) or repeated named `...` are used without being able to "
                     "resolve the size of those named `...` via another argument "
-                    "For example `func(tensor: TensorType['x': ..., 'x': ...])`. "
-                    "(But `func(tensor1: TensorType['x': ..., 'x': ...], tensor2: "
-                    "TensorType['x': ...])` would be fine.)\n"
+                    "For example `func(arr: JaxArray['x': ..., 'x': ...])`. "
+                    "(But `func(arr1: JaxArray['x': ..., 'x': ...], arr2: "
+                    "JaxArray['x': ...])` would be fine.)\n"
                     "\n"
                     "Removing the names of the `...` should suffice to resolve this "
                     "error. (But will of course remove that checking as well.)"
@@ -253,7 +272,7 @@ def _check_memo(memo):
             dims.append(_Dim(name=dim.name, size=size))
         detail = detail.update(dims=tuple(dims))
         _check_tensor(
-            argname, value, torch.Tensor, {"cls_name": cls_name, "details": [detail]}
+            argname, value, jnp.ndarray, {"cls_name": cls_name, "details": [detail]}
         )
 
 

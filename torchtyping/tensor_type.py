@@ -27,13 +27,13 @@ else:
 _AnnotatedType = type(Annotated[jnp.ndarray, ...])
 
 
-# For use when we have a plain TensorType, without any [].
-class _TensorTypeMeta(type(jnp.ndarray)):
+# For use when we have a plain JaxArray, without any [].
+class _JaxArrayMeta(type(jnp.ndarray)):
     def __instancecheck__(cls, obj: Any) -> bool:
         return isinstance(obj, cls.base_cls)
 
 
-class TensorTypeMixin(metaclass=_TensorTypeMeta):
+class JaxArrayMixin(metaclass=_JaxArrayMeta):
     def __new__(cls, *args, **kwargs) -> NoReturn:
         raise RuntimeError(f"Class {cls.__name__} cannot be instantiated.")
 
@@ -160,7 +160,7 @@ class TensorTypeMixin(metaclass=_TensorTypeMeta):
 
         assert len(details) > 0
 
-        # Frozen dict needed for Union[TensorType[...], ...], as Union hashes its
+        # Frozen dict needed for Union[JaxArray[...], ...], as Union hashes its
         # arguments.
         return Annotated[
             cls.base_cls,
@@ -171,6 +171,6 @@ class TensorTypeMixin(metaclass=_TensorTypeMeta):
 
 
 # Inherit from jnp.ndarray so that IDEs are happy to find methods on functions
-# annotated as TensorTypes.
-class JaxArray(jnp.ndarray, TensorTypeMixin):
+# annotated as JaxArrays.
+class JaxArray(jnp.ndarray, JaxArrayMixin):
     base_cls = jnp.ndarray
