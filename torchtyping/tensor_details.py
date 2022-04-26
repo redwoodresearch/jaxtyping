@@ -113,7 +113,7 @@ class ShapeDetail(TensorDetail):
         dims = []
         # check_names = any(name is not None for name in tensor.names)
         check_names = False
-        for name, size in zip(tensor.names, tensor.shape):
+        for size in tensor.shape:
             if not check_names:
                 name = _no_name
             dims.append(_Dim(name=name, size=size))
@@ -174,7 +174,7 @@ class _FloatDetail(TensorDetail):
 
     @classmethod
     def tensor_repr(cls, tensor: ndarray) -> str:
-        return "is_float" if self.check(tensor) else ""
+        return "is_float" if (tensor.dtype.kind == "f") else ""
 
 
 # is_named is special-cased and consumed by JaxArray.

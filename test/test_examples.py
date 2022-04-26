@@ -1,9 +1,13 @@
 import pytest
 
-from torch import ones, rand, sparse_coo, tensor
-from torchtyping import TensorType, is_named
+import jaxtyping
+import jax.numpy
 from typeguard import typechecked
 
+from pathlib import Path
+import sys
+sys.path.append(Path(__file__).parent.resolve())
+from torch_surrogate import TensorType, rand
 
 # make flake8 happy
 batch = x_channels = y_channels = a = b = channels = channels_x = channels_y = None
@@ -16,7 +20,7 @@ def test_example0():
         x: TensorType["batch", "x_channels"], y: TensorType["batch", "y_channels"]
     ) -> TensorType["batch", "x_channels", "y_channels"]:
 
-        return x.unsqueeze(-1) * y.unsqueeze(-2)
+        return x[..., None] * y[..., None, :]
 
     batch_outer_product(rand(2, 3), rand(2, 4))
     batch_outer_product(rand(5, 2), rand(5, 2))

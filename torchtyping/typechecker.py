@@ -293,7 +293,7 @@ def patch_typeguard():
                 "name_to_size",
                 "name_to_shape",
             )
-            value_info: List[Tuple[str, torch.Tensor, str, Dict[str, Any]]]
+            value_info: List[Tuple[str, jnp.ndarray, str, Dict[str, Any]]]
             name_to_size: Dict[str, int]
             name_to_shape: Dict[str, Tuple[int]]
 
@@ -320,7 +320,7 @@ def patch_typeguard():
             # Now check if it's annotating a tensor
             if is_torchtyping_annotation:
                 base_cls, *all_metadata = get_args(expected_type)
-                if not issubclass(base_cls, torch.Tensor):
+                if not issubclass(base_cls, jnp.ndarray):
                     is_torchtyping_annotation = False
             # Now check if the annotation's metadata is our metadata
             if is_torchtyping_annotation:

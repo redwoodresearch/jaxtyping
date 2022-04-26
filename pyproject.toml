@@ -2,7 +2,4 @@
 line-length = 88
 
 [tool.pytest.ini_options]
-addopts = "--torchtyping-patch-typeguard"
-# No running typeguard unfortunately, because we define a pytest import hook and that means torchtyping gets imported before typeguard gets a chance to run.
-# Ironic.
-#"--typeguard-packages=torchtyping"
+addopts = "--jaxtyping-patch-typeguard"

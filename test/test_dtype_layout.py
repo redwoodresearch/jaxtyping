@@ -1,9 +1,13 @@
 import pytest
-import torch
-from torchtyping import TensorType
 import typeguard
 
 from typing import Union
+
+from pathlib import Path
+import sys
+sys.path.append(Path(__file__).parent.resolve())
+from torch_surrogate import TensorType
+import torch_surrogate as torch
 
 
 @typeguard.typechecked
@@ -35,27 +39,3 @@ def test_int_dtype():
     _union_int_float_checker(x)
     with pytest.raises(TypeError):
         _float_checker(x)
-
-
-@typeguard.typechecked
-def _strided_checker(x: TensorType[torch.strided]):
-    pass
-
-
-@typeguard.typechecked
-def _sparse_coo_checker(x: TensorType[torch.sparse_coo]):
-    pass
-
-
-def test_strided_layout():
-    x = torch.rand(2)
-    _strided_checker(x)
-    with pytest.raises(TypeError):
-        _sparse_coo_checker(x)
-
-
-def test_sparse_coo_layout():
-    x = torch.rand(2).to_sparse()
-    _sparse_coo_checker(x)
-    with pytest.raises(TypeError):
-        _strided_checker(x)

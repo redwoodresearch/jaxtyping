@@ -67,7 +67,7 @@ class JaxArrayMixin(metaclass=_JaxArrayMeta):
             cls._type_error(item_i)
 
     @staticmethod
-    def _convert_dtype_element(item_i: Any) -> torch.dtype:
+    def _convert_dtype_element(item_i: Any) -> jnp.dtype:
         if item_i is int:
             return jnp.dtype("int64")
         elif item_i is float:
@@ -120,10 +120,10 @@ class JaxArrayMixin(metaclass=_JaxArrayMeta):
                     scalar_shape = True
                 else:
                     cls._type_error(item_i)
-            elif item_i in (int, bool, float) or isinstance(item_i, torch.dtype):
+            elif item_i in (int, bool, float) or isinstance(item_i, jnp.dtype):
                 dtypes.append(cls._convert_dtype_element(item_i))
-            elif isinstance(item_i, torch.layout):
-                layouts.append(item_i)
+            # elif isinstance(item_i, torch.layout):
+            #     layouts.append(item_i)
             # elif item_i is is_named:   # there are no named Jax arrays
             #     check_names = True
             elif isinstance(item_i, TensorDetail):

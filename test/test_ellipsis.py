@@ -1,7 +1,11 @@
 import pytest
-import torch
-from torchtyping import TensorType
 from typeguard import typechecked
+
+from pathlib import Path
+import sys
+sys.path.append(Path(__file__).parent.resolve())
+from torch_surrogate import TensorType
+import torch_surrogate as torch
 
 
 dim1 = dim2 = dim3 = channel = None

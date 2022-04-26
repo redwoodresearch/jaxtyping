@@ -1,8 +1,11 @@
 import pytest
 from torch import rand
-from torchtyping import TensorType
 from typeguard import typechecked
 
+from pathlib import Path
+import sys
+sys.path.append(Path(__file__).parent.resolve())
+from torch_surrogate import TensorType, rand
 
 x = y = None
 
@@ -22,7 +25,7 @@ def test_single():
 
     @typechecked
     def func4(x: TensorType["x"], y: TensorType["x"]) -> TensorType["x", "x"]:
-        return x.unsqueeze(0) + y.unsqueeze(1)
+        return x[None, ...] + y[:, None, ...]
 
     @typechecked
     def func5(x: TensorType["x"], y: TensorType["x"]) -> TensorType["x", "y"]:
@@ -55,11 +58,11 @@ def test_multiple():
     # caught for me when I ran the tests!
     @typechecked
     def func0(x: TensorType["x"], y: TensorType["y"]) -> TensorType["x", "y"]:
-        return x.unsqueeze(0) + y.unsqueeze(1)
+        return x[None, ...] + y[:, None, ...]
 
     @typechecked
     def func1(x: TensorType["x"], y: TensorType["y"]) -> TensorType["x", "y"]:
-        return x.unsqueeze(1) + y.unsqueeze(0)
+        return x[:, None, ...] + y[None, ...]
 
     @typechecked
     def func2(x: TensorType["x", "x"]):
