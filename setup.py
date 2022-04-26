@@ -6,7 +6,7 @@ import sys
 here = os.path.realpath(os.path.dirname(__file__))
 
 
-name = "torchtyping"
+name = "jaxtyping"
 
 # for simplicity we actually store the version in the __version__ attribute in the
 # source
@@ -53,12 +53,12 @@ user_python_version = sys.version_info
 
 python_requires = ">=3.7.0"
 
-install_requires = ["torch>=1.7.0", "typeguard>=2.11.1"]
+install_requires = ["typeguard>=2.11.1"]
 
 if user_python_version < (3, 9):
     install_requires += ["typing_extensions==3.7.4.3"]
 
-entry_points = dict(pytest11=["torchtyping = torchtyping.pytest_plugin"])
+entry_points = dict(pytest11=["jaxtyping = jaxtyping.pytest_plugin"])
 
 setuptools.setup(
     name=name,
