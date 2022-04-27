@@ -129,7 +129,7 @@ class ShapeDetail(TensorDetail):
 class DtypeDetail(TensorDetail):
     def __init__(self, *, dtype, **kwargs) -> None:
         super().__init__(**kwargs)
-        assert isinstance(dtype, jax.numpy.dtype)
+        assert isinstance(dtype, (jax.numpy.dtype, type(jax.numpy.int32)))
         self.dtype = dtype
 
     def __repr__(self) -> str:

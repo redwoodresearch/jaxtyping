@@ -120,7 +120,7 @@ class JaxArrayMixin(metaclass=_JaxArrayMeta):
                     scalar_shape = True
                 else:
                     cls._type_error(item_i)
-            elif item_i in (int, bool, float) or isinstance(item_i, jnp.dtype):
+            elif item_i in (int, bool, float) or isinstance(item_i, (jnp.dtype, type(jnp.int32))):
                 dtypes.append(cls._convert_dtype_element(item_i))
             # elif isinstance(item_i, torch.layout):
             #     layouts.append(item_i)
