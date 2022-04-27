@@ -1,5 +1,5 @@
 <h1 align='center'>jaxtyping</h1>
-<h2 align='center'>Type annotations for a tensor's shape, dtype, names, ...</h2>
+<h2 align='center'>Type annotations for an array's shape, dtype, ...</h2>
 
 Like [Torchtyping](https://github.com/patrick-kidger/torchtyping), but for Jax.
 
